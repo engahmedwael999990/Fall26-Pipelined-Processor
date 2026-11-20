@@ -1,6 +1,6 @@
 # run_testcase2_irq.do  --  in ModelSim, cd to src/6.TestBench/do_files, then:  do run_testcase2_irq.do
 do compile.do
-vsim -t ns work.top_level_tb \
+vsim -t ns -voptargs=+acc work.top_level_tb \
   -gPROG_FILE=../../../assembler/out/testcase2_irq.mem \
   -gIN_FILE=../../../assembler/testcase2_irq.in \
   -gIRQ_FILE=irq.txt \

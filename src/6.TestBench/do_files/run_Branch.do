@@ -1,6 +1,6 @@
 # run_Branch.do  --  in ModelSim, cd to src/6.TestBench/do_files, then:  do run_Branch.do
 do compile.do
-vsim -t ns work.top_level_tb \
+vsim -t ns -voptargs=+acc work.top_level_tb \
   -gPROG_FILE=../../../assembler/out/Branch.mem \
   -gIN_FILE=../../../assembler/Branch.in \
   -gIRQ_FILE="" \

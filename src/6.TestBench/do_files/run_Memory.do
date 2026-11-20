@@ -1,6 +1,6 @@
 # run_Memory.do  --  in ModelSim, cd to src/6.TestBench/do_files, then:  do run_Memory.do
 do compile.do
-vsim -t ns work.top_level_tb \
+vsim -t ns -voptargs=+acc work.top_level_tb \
   -gPROG_FILE=../../../assembler/out/Memory.mem \
   -gIN_FILE=../../../assembler/Memory.in \
   -gIRQ_FILE="" \
