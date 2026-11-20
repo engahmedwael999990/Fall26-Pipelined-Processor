@@ -1,0 +1,2 @@
+# cycles (hex, from the first edge after reset) at which INTR.IN is pulsed
+14

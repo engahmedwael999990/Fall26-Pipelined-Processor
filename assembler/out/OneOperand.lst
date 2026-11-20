@@ -1,0 +1,14 @@
+000  000000A0  A0
+0A0  00000000  NOP            #No change
+0A1  19200000  NOT R1         #R1 =FFFFFFFF , C--> no change, N --> 1, Z --> 0
+0A2  21200000  INC R1	       #R1 =00000000 , C --> 1 , N --> 0 , Z --> 1
+0A3  31000000  IN R1	       #R1= 5,add 5 on the in port,flags no change
+0A4  32000000  IN R2          #R2= 10,add 10 on the in port, flags no change
+0A5  1A400000  NOT R2	       #R2= FFFFFFEF, C --> no change, N -->1,Z --> 0
+0A6  21200000  INC R1         #R1= 6, C --> 0, N --> 0, Z--> 0
+0A7  28200000  OUT R1
+0A8  28400000  OUT R2
+0A9  10000000  SETC	       #C --> 1, N --> no change, Z --> no change
+0AA  22400000  INC R2	       #R2= FFFFFFF0, C --> 0, N -->1, Z --> 0
+0AB  28400000  OUT R2
+0AC  08000000  HLT

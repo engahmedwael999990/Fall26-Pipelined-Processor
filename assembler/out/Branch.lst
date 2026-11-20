@@ -1,0 +1,48 @@
+000  00000010  10
+001  00000900  900
+010  31000000  IN R1            #R1=30
+011  32000000  IN R2            #R2=50
+012  33000000  IN R3            #R3=100
+013  34000000  IN R4            #R4=300
+014  80100000  Push R4          #SP=FFE, M[FFF]=300
+015  C0000030  JMP 30           #taken
+016  21200000  INC R1	         #this statement shouldn't be executed
+030  5D340000  AND R5,R1,R5     #R5=0 , Z = 1
+031  A8000050  JZ  50           #Jump taken, Z = 0
+032  10000000  SETC             #this statement shouldn't be executed, C-->1
+050  A8000030  JZ 30            #shouldn't be taken
+051  1DA00000  NOT R5           #R5=FFFF_FFFF, Z= 0, C--> not change, N=1
+052  57B40000  SUB R7, R5, R5   #Z=1, N=0
+053  31000000  IN R1            #R1=60
+054  A8000060  JZ 60            #jump taken, Z=0
+055  494C0000  ADD R1, R2, R3   #should not be executed
+060  31000000  IN R1            #R1=70
+061  A8000070  JZ 70            #jump not taken
+062  C0000070  JMP 70           #jump taken & TEST prediction=false then unconditional jump
+063  21200000  inc r1           #should not be executed
+070  61200010  IADD R1, R1, 10  #R1=80
+071  57240000  SUB R7, R1, R1   #Z=1, N=0
+072  80040000  PUSH R1          #SP=FFD, M[FFE]=80
+073  89000000  POP R1           #SP=FFE, R1=80
+074  A8000080  JZ 80            #Taken
+075  21200000  INC R1 		 #try hardware interrupt when fetching this
+080  36000000  IN  R6           #R6=700, flag no change
+081  C0000700  JMP 700          #jump taken
+300  4E780000  ADD R6,R3,R6     #R6=400
+301  49280000  ADD R1,R1,R2     #R1=D0, C->0, N=0, Z=0
+302  D0000000  RET
+303  49240000  ADD R1, R1, R1   #this shouldnot be executed - try hardware interrupt when this is at fetch
+500  00000000  NOP
+501  00000000  NOP
+700  4F040000  ADD R7, R0, R1   #R7=80
+701  8E000000  POP R6           #R6=300, SP=FFF, try hardware interrupt here
+702  C8000300  Call 300         #SP=FFE, M[FFF]=next PC
+703  26C00000  INC R6	         #R6=401, this statement shouldn't be executed till call returns, C--> 0, N-->0, Z-->0
+704  00000000  NOP
+705  00000000  NOP
+706  08000000  HLT
+900  37000000  IN R7 		 #R7=5
+901  58000000  AND R0,R0,R0     #N=0,Z=1
+902  28600000  OUT R3
+903  E0000000  RTI              #POP PC and flags restored
+904  61400010  IADD R1, R2, 10  #Try Hardware interrupt when fetching this (in a second run) - infinite loop?  [Fall26 copy: original had R3 as immediate]

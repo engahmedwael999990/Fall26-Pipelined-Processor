@@ -1,0 +1,29 @@
+# simulation / regression output
+build/
+__pycache__/
+*.pyc
+src/6.TestBench/do_files/work/
+src/6.TestBench/do_files/transcript
+src/6.TestBench/do_files/*.wlf
+src/6.TestBench/do_files/result_*.txt
+src/6.TestBench/do_files/ram_*.mem
+src/6.TestBench/do_files/modelsim.ini
+# Quartus output
+quartus/output_files/
+quartus/db/
+quartus/incremental_db/
+quartus/simulation/
+quartus/*.qws
+quartus/*.rpt
+quartus/*.summary
+quartus/*.smsg
+quartus/*.done
+quartus/*.jdi
+quartus/*.sld
+quartus/*.pin
+quartus/*.sof
+quartus/*.pof
+# local scratch
+_to_delete/
+quartus/*.txt
+!quartus/README.txt

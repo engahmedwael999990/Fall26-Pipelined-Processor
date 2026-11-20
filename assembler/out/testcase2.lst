@@ -1,0 +1,50 @@
+000  00000200  200
+001  000003FF  3FF     # [Fall26 adaptation] handler now starts one word earlier, see below
+002  00000600  600
+003  00000800  800
+200  C8000300  CALL 300
+201  10000000  SETC            # Should be preserved
+202  00000000  NOP
+203  00000000  NOP
+204  00000000  NOP
+205  D8000002  INT 0
+206  D8000003  INT 1
+207  08000000  HLT             # Should be executed, End of testcase \(^-^)/
+300  90000005  LDM R0,5        # Some Value
+301  80000000  PUSH R0
+302  910000A0  LDM R1,A0       # Some data memory address
+303  940000A5  LDM R4,A5       # Same data memory address but plus 5
+304  8A000000  POP R2
+305  A0280005  STD R2,5(R1)    # Load-use here
+306  9B800000  LDD R3,0(R4)
+307  500C0000  SUB R0,R0,R3    # Should be zero, Load-use here
+308  A800030A  JZ 30A          # RET Address # Should be executed and succeed
+309  C0000300  JMP 300         # Should not be executed
+30A  D0000000  RET             # Should be executed
+3FF  90000006  LDM R0,6
+400  18000000  NOT R0          # R0 = FFFFFFF9
+401  20000000  INC R0          # Sets Negative Flag
+402  B8000400  JC 400          #  |
+403  B8000400  JC 400          #  |   Reducing the 2-bit branch predictor to 0
+404  B8000400  JC 400          # \ /
+405  B8000400  JC 400          #  '
+406  20000000  INC R0
+407  B0000406  JN 406          #  |   # Address of the INC # Loop until R0 is not negative (5 times), Increases the 2-bit branch predictor to max
+408  B8000400  JC 400          #  |
+409  B8000400  JC 400          #  |   Reducing the 2-bit branch predictor to 0
+40A  B8000400  JC 400          # \ /
+40B  B8000400  JC 400          #  '
+40C  E0000000  RTI
+600  90000001  LDM R0,1
+601  91000002  LDM R1,2
+602  B0000605  JN 605           # Address of the RTI # For loop that should execute 3 times
+603  51200000  SUB R1,R1,R0
+604  C0000602  JMP 602          # Address of the JN
+605  E0000000  RTI
+800  90000002  LDM R0,2
+801  91000000  LDM R1,0
+802  51200000  SUB R1,R1,R0
+803  A8000806  JZ 806          # Address of the RTI # For loop that should execute 2 times
+804  21200000  INC R1
+805  C0000803  JMP 803         # Address of the JZ
+806  E0000000  RTI

@@ -1,0 +1,32 @@
+000  00000200  200
+001  00000400  400
+002  00000600  600
+003  00000800  800
+200  30000000  IN R0           # Force FFFFFFFF(-1) on IN port
+201  39000000  MOV R1,R0
+202  21200000  INC R1          # R1 -> 0, C -> 1, Z -> 1, N -> 0
+203  19200000  NOT R1          # R1 -> FFFFFFFF(-1), N -> 1, Z -> 0
+204  28200000  OUT R1
+205  60000010  IADD R0,R0,10   # R0 -> 0F
+206  4C040000  ADD R4,R0,R1    # R4 -> 0E, C -> 1, Z -> 0, N -> 0  ALU-ALU Forwarding
+207  55040000  SUB R5,R0,R1    # R5 -> 10, C -> 1, Z -> 0, N -> 0  Memory-ALU Forwarding
+208  5E040000  AND R6,R0,R1    # R6 -> 0F, Z -> 0, N -> 0          No forwarding
+209  10000000  SETC            # Sets Carry Flag
+20A  B8000300  JC 300          # Function jump, should be executed and succeed
+20B  C0000200  JMP 200         # Main loop jump, shouldn't be executed
+300  B8000200  JC 200          # Main loop jump, should be executed and fail
+301  10000000  SETC            # Sets Carry Flag
+302  9700DEAD  LDM R7,0DEAD    # Instruction that doesn't modify the CCR
+303  47F80000  SWAP R7,R6      # R7 -> 0F, R6 -> 0DEAD, Instruction that doesn't modify the CCR
+304  3B180000  MOV R3,R6       # R3 should be DEAD (T_T)
+305  00000000  NOP
+306  00000000  NOP
+307  00000000  NOP
+308  A8000300  JZ 300          # Should be executed and fail
+309  08000000  HLT             # Should be executed, End of testcase \(^-^)/
+400  00000000  NOP
+401  08000000  HLT
+600  00000000  NOP
+601  08000000  HLT
+800  00000000  NOP
+801  E0000000  RTI

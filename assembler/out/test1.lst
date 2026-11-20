@@ -1,0 +1,12 @@
+000  00000010  10
+010  9000FFFF  LDM R0, FFFF        # R0 = 0000FFFF
+011  20000000  INC R0              # R0 = 00010000, Z=0, N=0
+012  91000000  LDM R1, 0000        # R1 = 00000000
+013  19200000  NOT R1              # R1 = FFFFFFFF, N=1, Z=0
+014  21200000  INC R1              # R1 = 00000000, Z=1
+015  19200000  NOT R1              # R1 = FFFFFFFF, N=1
+016  10000000  SETC                # C = 1
+017  32000000  IN R2               # R2 = IN.PORT (set IN.PORT = 12345678 in the do file)
+018  28400000  OUT R2              # OUT.PORT = 12345678
+019  00000000  NOP                 # PC = PC + 1
+01A  08000000  HLT

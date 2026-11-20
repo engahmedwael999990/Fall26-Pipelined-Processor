@@ -1,0 +1,16 @@
+000  000000FF  FF
+0FF  31000000  IN R1             #add 5 in R1
+100  32000000  IN R2             #add 19 in R2
+101  33000000  IN R3             #FFFFFFFF
+102  34000000  IN R4             #FFFFF320
+103  3D0C0000  MOV R5, R3        #R5 = FFFFFFFF , flags no change  [Fall26 order: MOV Rdst,Rsrc]
+104  4C300000  ADD R4,R1,R4      #R4 = FFFFF325 , C-->0, N-->1, Z-->0
+105  56B00000  SUB R6,R5,R4      #R6 = 00000CDA , C-->1, N-->0, Z-->0 carry as not borrow
+106  5CF00000  AND R4,R7,R4      #R4 = 00000000 , C-->no change, N-->0, Z-->1
+107  6240FFFF  IADD R2,R2,FFFF   #R2 = 00010018 (C = 0,N,Z= 0) OR R2=18 and C = 1 if implementing sign extend
+108  42500000  SWAP R2, R4
+109  4A280000  ADD R2,R1,R2      #R2 = 5 (C = 0, N = 0, Z = 0)
+10A  4E880000  ADD R6,R4,R2      #R6 = 0001001D
+10B  66C00002  IADD R6, R6, 2    #R6 = 0001001F
+10C  5B580000  AND R3, R2, R6    #R3 = 00000005
+10D  08000000  HLT
