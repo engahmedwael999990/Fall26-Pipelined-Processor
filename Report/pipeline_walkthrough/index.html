@@ -1,0 +1,346 @@
+<title>Fall26 Pipeline Walkthrough</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&display=swap">
+<style>
+/* Layout: one wide column; the schematic plate is the hero, the pipeline chart and the cycle notes sit under it. */
+:root{
+  --bg:#f2f4f6; --surface:#ffffff; --ink:#17212b; --muted:#5a6673; --line:#d4dae0; --accent:#0e7c7b;
+  --plate:#ffffff; --good:#1e7a4c; --bad:#c62828; --fwd:#a21caf;
+  --c0:#2f6fd6; --c1:#d9771f; --c2:#178a7a; --c3:#8a4fc7; --c4:#b8912a; --c5:#c23b5a;
+  --sF:#e3f2fd; --sD:#f3e5f5; --sE1:#e8f5e9; --sE2:#fff8e1; --sM:#fce4ec; --sW:#e0f2f1; --sX:#eceff1;
+  --f-display:"IBM Plex Sans Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#10161c; --surface:#19212a; --ink:#e4e9ee; --muted:#9aa6b2; --line:#2e3944; --accent:#4fc1bf;
+  --plate:#ffffff; --good:#5cc48d; --bad:#f08079; --fwd:#e07ff0;
+  --c0:#6b9cf0; --c1:#f0a056; --c2:#45c2ae; --c3:#b38cf0; --c4:#e0c060; --c5:#f07a98;
+  --sF:#1d3247; --sD:#33253b; --sE1:#1f3523; --sE2:#3a321b; --sM:#3b2230; --sW:#183533; --sX:#27303a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10161c; --surface:#19212a; --ink:#e4e9ee; --muted:#9aa6b2; --line:#2e3944; --accent:#4fc1bf;
+  --plate:#ffffff; --good:#5cc48d; --bad:#f08079; --fwd:#e07ff0;
+  --c0:#6b9cf0; --c1:#f0a056; --c2:#45c2ae; --c3:#b38cf0; --c4:#e0c060; --c5:#f07a98;
+  --sF:#1d3247; --sD:#33253b; --sE1:#1f3523; --sE2:#3a321b; --sM:#3b2230; --sW:#183533; --sX:#27303a; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--f-body);margin:0}
+.wrap{max-width:76rem;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:2rem 4rem}
+h1,h2,h3{font-family:var(--f-display);line-height:1.15;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.9rem,4.5vw,2.7rem);font-weight:700}
+h2{font-size:1.4rem;font-weight:600;margin-top:2.4rem}
+p{margin:.6rem 0;max-width:70ch}
+code{font-family:var(--f-mono);font-size:.9em}
+.eyebrow{font:600 .74rem/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.lede{color:var(--muted);font-size:1.05rem;max-width:66ch}
+.status{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1rem}
+.pill{display:inline-flex;align-items:center;gap:.4rem;font:500 .8rem/1 var(--f-mono);padding:.45rem .65rem;border:1px solid var(--line);border-radius:999px;background:var(--surface)}
+.pill b{color:var(--good)}
+.dot{width:.5rem;height:.5rem;border-radius:50%;background:var(--good)}
+.modes{display:flex;gap:.4rem;margin-top:1.6rem;flex-wrap:wrap}
+button{font:500 .85rem var(--f-body);color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:.42rem .7rem;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button[aria-pressed="true"],button[aria-selected="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+button:focus-visible,input:focus-visible,select:focus-visible,.cell:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.panelbox{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:1rem;margin-top:1rem}
+.picker{display:grid;gap:.7rem}
+.pgroup{display:flex;flex-wrap:wrap;align-items:center;gap:.35rem}
+.pgroup .glab{font:600 .72rem var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);width:7.5rem;flex:none}
+.pgroup button{font:500 .8rem var(--f-mono);padding:.32rem .5rem}
+.pgroup button small{font-weight:400;opacity:.75;margin-left:.2rem}
+.progtabs{display:flex;flex-wrap:wrap;gap:.35rem}
+.sel-info{display:flex;flex-wrap:wrap;gap:.4rem 1.2rem;align-items:baseline;margin-top:.8rem}
+.sel-info .big{font:600 1.25rem var(--f-mono)}
+.sel-info .muted{color:var(--muted)}
+.ctl{display:flex;flex-wrap:wrap;align-items:center;gap:.45rem;margin:.9rem 0 .2rem}
+.ctl input[type=range]{flex:1 1 10rem;accent-color:var(--accent)}
+.ctl .now{font:600 .95rem var(--f-mono);min-width:6.5rem}
+.ctl select{font:500 .85rem var(--f-body);background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:.35rem}
+.views{display:flex;flex-wrap:wrap;gap:.3rem;margin-left:auto}
+.views button{font:500 .78rem var(--f-mono);padding:.3rem .5rem}
+/* stage strip */
+.strip{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;margin-top:.8rem}
+.slot{border:1px solid var(--line);border-radius:4px;padding:.35rem .45rem;min-height:3.4rem;background:var(--surface);min-width:0}
+.slot .sn{font:600 .72rem var(--f-mono);letter-spacing:.08em;color:var(--muted)}
+.slot .who{font:600 .82rem var(--f-mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-left:4px solid var(--who,transparent);padding-left:.35rem;margin-top:.2rem}
+.slot .who.empty{color:var(--muted);font-weight:400;border-left-color:var(--line)}
+.slot.cur{box-shadow:inset 0 0 0 2px var(--accent)}
+/* schematic plate */
+.plate{position:relative;background:var(--plate);border:1px solid var(--line);border-radius:6px;margin-top:.6rem;overflow:hidden}
+.plate svg{display:block;width:100%;height:auto;touch-action:none}
+.plate.zoom svg{height:min(68vh,40rem)}
+.wire{fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:7;opacity:.88;stroke-dasharray:22 14;animation:flow 1.1s linear infinite}
+.wire.halo{stroke-width:15;opacity:.22;stroke-dasharray:none;animation:none}
+@keyframes flow{from{stroke-dashoffset:36}to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion:reduce){.wire{animation:none;stroke-dasharray:none}}
+.blk{fill-opacity:.13;stroke-width:4;stroke-opacity:.9}
+.hint{font-size:.8rem;color:var(--muted);margin:.35rem 0 0}
+.legend{display:flex;flex-wrap:wrap;gap:.9rem;font-size:.82rem;color:var(--muted);margin-top:.5rem}
+.legend span{display:inline-flex;align-items:center;gap:.35rem}
+.sw{display:inline-block;width:1.4rem;height:.35rem;border-radius:2px}
+/* chart */
+.chart-scroll{overflow-x:auto;margin-top:.6rem;padding-bottom:.3rem}
+.chart{display:grid;gap:2px;font:500 .72rem/1 var(--f-mono);width:max-content;min-width:100%}
+.rl{position:sticky;left:0;background:var(--surface);padding-right:.6rem;display:flex;align-items:center;gap:.4rem;white-space:nowrap;z-index:1;font-weight:500}
+.rl i{display:inline-block;width:.6rem;height:.6rem;border-radius:2px;background:var(--pc)}
+.hd{color:var(--muted);text-align:center;padding:.25rem 0;cursor:pointer;font-variant-numeric:tabular-nums}
+.cell{height:1.6rem;min-width:1.9rem;border-radius:2px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:600;color:var(--ink)}
+.cell.e{border-bottom:1px dotted var(--line);cursor:default}
+.cell.F{background:var(--sF)}.cell.D{background:var(--sD)}.cell.E1{background:var(--sE1)}.cell.E2{background:var(--sE2)}.cell.M{background:var(--sM)}.cell.W{background:var(--sW)}
+.cell.x{background:var(--sX);color:var(--muted)}
+.cell.stall{box-shadow:inset 0 -3px 0 var(--bad)}
+.col{outline:2px solid var(--ink);outline-offset:0;position:relative;z-index:2}
+.hd.col{outline:none;color:var(--ink);font-weight:700;text-decoration:underline}
+/* notes */
+.notes{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:1rem;margin-top:1rem}
+@media (max-width:820px){.notes{grid-template-columns:1fr}}
+.notes h3{font:600 .76rem var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:.4rem}
+.stagelist{display:grid;gap:.45rem}
+.st{display:grid;grid-template-columns:3.2rem minmax(0,1fr);gap:.6rem;align-items:start;padding:.45rem .55rem;border-radius:4px;background:var(--bg)}
+.st b.tag{font:600 .74rem var(--f-mono);padding:.2rem .3rem;border-radius:3px;text-align:center;color:var(--ink)}
+.st .nm{font:600 .85rem var(--f-mono);border-left:4px solid var(--who);padding-left:.35rem}
+.st .tx{font-size:.88rem;margin-top:.15rem}
+.st.cur{box-shadow:inset 0 0 0 2px var(--accent)}
+.ev{display:grid;gap:.35rem}
+.ev div{font-size:.88rem;padding:.4rem .55rem;border-radius:4px;border-left:3px solid var(--muted);background:var(--bg)}
+.ev .stall,.ev .halt{border-left-color:var(--bad)}.ev .flush{border-left-color:var(--bad)}.ev .fwd{border-left-color:var(--fwd)}
+.regs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.3rem;font:500 .78rem var(--f-mono);margin-top:.4rem}
+.regs div{background:var(--bg);border-radius:3px;padding:.25rem .35rem;font-variant-numeric:tabular-nums}
+.regs div.chg{box-shadow:inset 0 0 0 1.5px var(--accent)}
+.regs span{color:var(--muted);margin-right:.25rem}
+.none{color:var(--muted);font-size:.88rem}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">CMPS301 &middot; Fall 2026 &middot; 6-stage pipelined processor</div>
+  <h1>Fall26 Pipeline Walkthrough</h1>
+  <p class="lede">Watch any instruction travel through the draw.io schematic stage by stage, or replay a whole test program cycle by cycle. The coloured wires are the exact wires each instruction uses; the replays come from the real VHDL simulation.</p>
+  <div class="status">
+    <span class="pill"><span class="dot"></span>Fall26 test1 &amp; test2 <b>pass</b></span>
+    <span class="pill"><span class="dot"></span>Regression <b>470/470</b></span>
+    <span class="pill"><span class="dot"></span>Quartus <b>614 ALMs &middot; 677 regs</b></span>
+  </div>
+</header>
+
+<div class="modes" role="tablist" aria-label="Mode">
+  <button id="m-ins" role="tab" aria-selected="true">One instruction</button>
+  <button id="m-prog" role="tab" aria-selected="false">Program replay</button>
+</div>
+
+<div class="panelbox" id="pick-ins">
+  <div class="picker" id="picker"></div>
+  <div class="sel-info"><span class="big" id="ins-label"></span><span class="muted" id="ins-sum"></span><span class="muted mono" id="ins-op"></span></div>
+</div>
+<div class="panelbox" id="pick-prog" hidden>
+  <div class="progtabs" id="progtabs"></div>
+  <p class="hint" id="prog-note" style="font-size:.9rem;margin-top:.6rem"></p>
+</div>
+
+<div class="ctl">
+  <button id="prev" aria-label="Step back">&#9664;</button>
+  <button id="play" aria-label="Play">Play</button>
+  <button id="next" aria-label="Step forward">&#9654;</button>
+  <input type="range" id="slider" min="0" max="5" value="0" aria-label="Step">
+  <span class="now" id="now"></span>
+  <select id="speed" aria-label="Speed"><option value="1600">slow</option><option value="1000" selected>normal</option><option value="500">fast</option></select>
+  <div class="views" role="group" aria-label="Zoom">
+    <button id="v-follow" aria-pressed="true" title="Zoom on the stage being explained">Follow</button>
+    <button data-v="all" aria-pressed="false">Whole</button>
+    <button data-v="F" aria-pressed="false">IF</button><button data-v="D" aria-pressed="false">ID</button>
+    <button data-v="E1" aria-pressed="false">EX1</button><button data-v="E2" aria-pressed="false">EX2</button>
+    <button data-v="MW" aria-pressed="false">MEM/WB</button><button data-v="ctl" aria-pressed="false">Control</button>
+  </div>
+</div>
+
+<div class="strip" id="strip"></div>
+<div class="plate" id="plate"><svg id="sch" viewBox="90 0 4210 1900" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Processor schematic with the wires used in this step highlighted">
+  <image href="schema.png" x="90" y="0" width="4210" height="1900"/>
+  <g id="blocks"></g><g id="halos"></g><g id="flows"></g>
+</svg></div>
+<p class="hint">Drag to move around the schematic, use the zoom buttons, or click a cell of the chart. Arrow keys step.</p>
+<div class="legend" id="legend"></div>
+
+<h2>Pipeline chart</h2>
+<div class="panelbox" style="margin-top:.6rem">
+  <div class="chart-scroll"><div class="chart" id="chart"></div></div>
+  <div class="legend">
+    <span><i class="sw" style="background:var(--sF)"></i>F fetch</span><span><i class="sw" style="background:var(--sD)"></i>D decode</span>
+    <span><i class="sw" style="background:var(--sE1)"></i>E1</span><span><i class="sw" style="background:var(--sE2)"></i>E2</span>
+    <span><i class="sw" style="background:var(--sM)"></i>M memory</span><span><i class="sw" style="background:var(--sW)"></i>W write back</span>
+    <span><i class="sw" style="background:var(--sX)"></i>x flushed</span><span><i class="sw" style="box-shadow:inset 0 -3px 0 var(--bad)"></i>stalled</span>
+  </div>
+</div>
+
+<div class="notes">
+  <div class="panelbox" style="margin-top:0"><h3 id="stages-h">What each stage does now</h3><div class="stagelist" id="stagelist"></div></div>
+  <div class="panelbox" style="margin-top:0">
+    <h3>Events this cycle</h3><div class="ev" id="events"></div>
+    <h3 style="margin-top:1rem">Registers after this cycle</h3><div class="regs" id="regs"></div>
+  </div>
+</div>
+</div>
+
+<script>
+(function(){
+const ST=['F','D','E1','E2','M','W'], SN={F:'IF',D:'ID',E1:'EX1',E2:'EX2',M:'MEM',W:'WB'};
+const REG={F:[90,180,760,980],D:[740,60,1000,1020],E1:[1680,180,850,1260],E2:[2440,180,850,950],MW:[3200,380,1100,420],ctl:[90,1380,1880,520],all:[90,0,4210,1900]};
+const VIEWFOR={F:'F',D:'D',E1:'E1',E2:'E2',M:'MW',W:'MW'};
+const GROUPS=[['One operand',['NOP','HLT','SETC','NOT','INC','OUT','IN']],['Two operands',['MOV','SWAP','ADD','SUB','AND','IADD','CMP','SHR','SHL']],
+  ['Memory',['PUSH','POP','LDM','LDD','STD']],['Control',['JZ','JN','JC','JMP','CALL','RET','INT','RTI']]];
+const $=id=>document.getElementById(id);
+const svgNS='http://www.w3.org/2000/svg';
+let D=null, mode='ins', insIdx=9, progIdx=0, step=0, timer=null, follow=true, view='all', vb=[90,0,4210,1900], drag=null;
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const col=i=>i===-1?css('--bad'):i===-2?css('--fwd'):css('--c'+i);
+
+function setVB(r){vb=r.slice();$('sch').setAttribute('viewBox',r.join(' '));$('plate').classList.toggle('zoom',r[2]<4000)}
+function setView(v){view=v;document.querySelectorAll('.views [data-v]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===v)));setVB(REG[v])}
+
+function drawWires(list){
+  const bl=$('blocks'),ha=$('halos'),fl=$('flows');bl.innerHTML='';ha.innerHTML='';fl.innerHTML='';
+  const shapes=new Map();
+  for(const [k,c] of list){
+    const w=D.wires[k];if(!w)continue;
+    const d='M'+w.pts.map(p=>p.join(' ')).join(' L');
+    for(const cls of ['wire halo','wire']){
+      const p=document.createElementNS(svgNS,'path');p.setAttribute('d',d);p.setAttribute('class',cls);p.setAttribute('stroke',col(c));
+      (cls==='wire'?fl:ha).appendChild(p);
+    }
+    for(const s of [w.src,w.dst]) if(s&&D.shapes[s]&&!shapes.has(s)&&c>=0) shapes.set(s,c);
+  }
+  for(const [s,c] of shapes){
+    const [x,y,w,h]=D.shapes[s];const r=document.createElementNS(svgNS,'rect');
+    r.setAttribute('x',x-4);r.setAttribute('y',y-4);r.setAttribute('width',w+8);r.setAttribute('height',h+8);r.setAttribute('rx',6);
+    r.setAttribute('class','blk');r.setAttribute('fill',col(c));r.setAttribute('stroke',col(c));bl.appendChild(r);
+  }
+}
+
+function buildPicker(){
+  const p=$('picker');p.innerHTML='';
+  for(const [g,ops] of GROUPS){
+    const row=document.createElement('div');row.className='pgroup';row.innerHTML=`<span class="glab">${g}</span>`;
+    D.instr.forEach((ins,i)=>{ if(!ops.includes(ins.op))return;
+      const b=document.createElement('button');b.type='button';b.id='ins-'+i;
+      const v=ins.label.includes('micro-op 1')?'uop1':ins.label.includes('micro-op 2')?'uop2':ins.label.includes('not taken')?'not taken':ins.label.includes('(taken)')?'taken':'';
+      b.innerHTML=ins.op+(v?`<small>${v}</small>`:'');b.setAttribute('aria-pressed','false');
+      b.onclick=()=>{insIdx=i;step=0;stop();render(true)};row.appendChild(b)});
+    p.appendChild(row);
+  }
+}
+function buildProgTabs(){
+  const t=$('progtabs');t.innerHTML='';
+  D.progs.forEach((p,i)=>{const b=document.createElement('button');b.type='button';b.id='prog-'+i;b.textContent=p.title;b.setAttribute('aria-pressed','false');
+    b.onclick=()=>{progIdx=i;step=0;stop();render(true)};t.appendChild(b)});
+}
+
+function stripHTML(occ,cur){
+  return ST.map(s=>{const o=occ[s];return `<div class="slot${cur===s?' cur':''}"><div class="sn">${SN[s]}</div>`+
+    (o?`<div class="who" style="--who:${col(o.c)}" title="${o.n}">${o.n}</div>`:`<div class="who empty">empty</div>`)+`</div>`}).join('');
+}
+
+function regsHTML(regs,chg,ccr,sp,pc){
+  if(!regs)return '<span class="none">-</span>';
+  const changed=new Set((chg||[]).filter(x=>x[0]==='R').map(x=>x.slice(0,2)));
+  let h=regs.map((v,i)=>`<div class="${changed.has('R'+i)?'chg':''}"><span>R${i}</span>${v}</div>`).join('');
+  h+=`<div><span>Z N C</span>${ccr&1} ${(ccr>>1)&1} ${(ccr>>2)&1}</div><div><span>SP</span>${sp}</div><div><span>PC</span>${pc}</div>`;
+  return h;
+}
+
+function render(reset){
+  stop.keep=true;
+  $('m-ins').setAttribute('aria-selected',String(mode==='ins'));$('m-prog').setAttribute('aria-selected',String(mode==='prog'));
+  $('pick-ins').hidden=mode!=='ins';$('pick-prog').hidden=mode!=='prog';
+  if(mode==='ins'){
+    document.querySelectorAll('#picker button').forEach(b=>b.setAttribute('aria-pressed',String(b.id==='ins-'+insIdx)));
+    const ins=D.instr[insIdx], n=ins.stages.length; step=Math.max(0,Math.min(step,n-1));
+    $('ins-label').textContent=ins.label;$('ins-sum').innerHTML=ins.summary;$('ins-op').textContent='opcode '+ins.opcode;
+    $('slider').max=n-1;$('slider').value=step;
+    const s=ins.stages[step];
+    $('now').textContent=`${SN[s.st]} \u00b7 step ${step+1}/${n}`;
+    const occ={};occ[s.st]={n:ins.label.split('  ')[0],c:0};
+    $('strip').innerHTML=stripHTML(occ,s.st);
+    drawWires(s.wires.map(k=>[k,0]));
+    if(follow)setVB(REG[VIEWFOR[s.st]]);
+    // chart: one row
+    let h=`<div class="hd"></div>`+ins.stages.map((x,i)=>`<div class="hd${i===step?' col':''}" data-i="${i}">cycle ${i+1}</div>`).join('');
+    h+=`<div class="rl"><i style="--pc:${col(0)}"></i>${ins.label}</div>`+ins.stages.map((x,i)=>`<div class="cell ${x.st}${i===step?' col':''}" tabindex="0" data-i="${i}">${x.st}</div>`).join('');
+    $('chart').style.gridTemplateColumns=`auto repeat(${n},minmax(4.2rem,1fr))`;$('chart').innerHTML=h;
+    $('stages-h').textContent='What happens in each stage';
+    $('stagelist').innerHTML=ins.stages.map((x,i)=>`<div class="st${i===step?' cur':''}"><b class="tag" style="background:var(--s${x.st})">${SN[x.st]}</b><div><div class="tx">${x.text}</div></div></div>`).join('');
+    const ev=[];
+    if(ins.op==='SWAP')ev.push(['fwd','SWAP is issued twice from the same word: the PC holds one cycle (complete = 0 during micro-op 1).']);
+    if(['LDD','POP'].includes(ins.op))ev.push(['stall','If the next instruction uses the loaded register it waits 2 cycles in ID (load-use).']);
+    if(['JZ','JN','JC','JMP','CALL','INT'].includes(ins.op))ev.push(['flush','Predict-not-taken: when taken in EX2, the 3 younger instructions (IF/ID, ID, EX1) are flushed.']);
+    if(['RET','RTI'].includes(ins.op))ev.push(['stall','Younger instructions wait in ID until the return address arrives in MEM (3 cycles).']);
+    if(ins.op==='HLT')ev.push(['halt','After HLT nothing is issued; only RESET.IN restarts the CPU.']);
+    $('events').innerHTML=ev.length?ev.map(e=>`<div class="${e[0]}">${e[1]}</div>`).join(''):'<span class="none">No hazards: results are forwarded to the next instructions.</span>';
+    $('regs').innerHTML='<span class="none">Pick "Program replay" to see real register values.</span>';
+    $('legend').innerHTML=`<span><i class="sw" style="background:${col(0)}"></i>wires and blocks used by this instruction in ${SN[s.st]}</span>`;
+  } else {
+    document.querySelectorAll('#progtabs button').forEach(b=>b.setAttribute('aria-pressed',String(b.id==='prog-'+progIdx)));
+    const P=D.progs[progIdx], n=P.cycles.length; step=Math.max(0,Math.min(step,n-1));
+    $('prog-note').textContent=P.note;
+    $('slider').max=n-1;$('slider').value=step;
+    const C=P.cycles[step], cyc=C.c;
+    $('now').textContent=`cycle ${cyc} / ${P.last}`;
+    const occ={};for(const s of ST){const t=C.stages[s];if(t){const I=P.inst[t.i];occ[s]={n:I.name,c:I.color}}}
+    const held=C.ev.some(e=>e[0]==='stall'||e[0]==='halt');
+    $('strip').innerHTML=stripHTML(occ,null);
+    drawWires(C.wires);
+    if(follow)setVB(REG.all);
+    // chart
+    const cols=[];for(let c=P.first;c<=P.last;c++)cols.push(c);
+    let h=`<div class="hd"></div>`+cols.map(c=>`<div class="hd${c===cyc?' col':''}" data-c="${c}">${c}</div>`).join('');
+    P.inst.forEach(I=>{h+=`<div class="rl"><i style="--pc:${col(I.color)}"></i>${I.name}</div>`;
+      for(const c of cols){const s=I.stages[c];const stall=s==='D'&&I.stages[c+1]==='D';
+        h+=s?`<div class="cell ${s}${stall?' stall':''}${c===cyc?' col':''}" tabindex="0" data-c="${c}">${s}</div>`:`<div class="cell e${c===cyc?' col':''}"></div>`}});
+    $('chart').style.gridTemplateColumns=`auto repeat(${cols.length},1.9rem)`;$('chart').innerHTML=h;
+    if(reset){const sc=$('chart').parentElement;sc.scrollLeft=0}
+    else{const cell=$('chart').querySelector('.hd.col');if(cell){const sc=$('chart').parentElement;const x=cell.offsetLeft-sc.clientWidth/2;sc.scrollLeft=Math.max(0,x)}}
+    $('stages-h').textContent=`What each stage does in cycle ${cyc}`;
+    $('stagelist').innerHTML=ST.map(s=>{const t=C.stages[s];if(!t)return `<div class="st"><b class="tag" style="background:var(--s${s})">${SN[s]}</b><div class="tx" style="color:var(--muted)">${s==='F'&&held?'PC and RAM port A hold (adv = 0): the next word waits until the stall ends.':s==='F'?'No instruction is counted in IF this cycle: the PC is being redirected, a vector word is being read, or the CPU has halted.':'empty (bubble)'}</div></div>`;
+      const I=P.inst[t.i];return `<div class="st"><b class="tag" style="background:var(--s${s})">${SN[s]}</b><div style="--who:${col(I.color)}"><div class="nm">${I.name}</div><div class="tx">${t.text}</div></div></div>`}).join('');
+    const ev=C.ev.map(e=>`<div class="${e[0]}">${e[1]}</div>`);
+    if(C.chg.length)ev.push(`<div>After the edge: ${C.chg.join(', ')}.</div>`);
+    $('events').innerHTML=ev.length?ev.join(''):'<span class="none">Nothing special: every stage just hands its instruction to the next one.</span>';
+    $('regs').innerHTML=regsHTML(C.regs,C.chg,C.ccr,C.sp,C.pc);
+    $('legend').innerHTML=`<span><i class="sw" style="background:${col(0)}"></i><i class="sw" style="background:${col(1)}"></i><i class="sw" style="background:${col(2)}"></i>one colour per instruction (same as the chart)</span>
+      <span><i class="sw" style="background:${col(-2)}"></i>forwarding lane in use</span><span><i class="sw" style="background:${col(-1)}"></i>flush</span>`;
+  }
+  $('play').textContent=timer?'Pause':'Play';
+  stop.keep=false;
+}
+
+function stop(){if(timer){clearInterval(timer);timer=null}$('play').textContent='Play'}
+function max(){return mode==='ins'?D.instr[insIdx].stages.length-1:D.progs[progIdx].cycles.length-1}
+function go(d){step=Math.max(0,Math.min(max(),step+d));render()}
+
+function wire(){
+  $('m-ins').onclick=()=>{mode='ins';step=0;stop();render(true)};
+  $('m-prog').onclick=()=>{mode='prog';step=0;stop();render(true)};
+  $('prev').onclick=()=>{stop();go(-1)};$('next').onclick=()=>{stop();go(1)};
+  $('slider').oninput=e=>{stop();step=+e.target.value;render()};
+  $('play').onclick=()=>{if(timer){stop();return}if(step>=max())step=0;
+    timer=setInterval(()=>{if(step>=max()){stop();return}go(1)},+$('speed').value);render()};
+  $('speed').onchange=()=>{if(timer){stop();$('play').click()}};
+  $('v-follow').onclick=e=>{follow=!follow;e.target.setAttribute('aria-pressed',String(follow));if(follow)render();};
+  document.querySelectorAll('.views [data-v]').forEach(b=>b.onclick=()=>{follow=false;$('v-follow').setAttribute('aria-pressed','false');setView(b.dataset.v)});
+  $('chart').addEventListener('click',e=>{const t=e.target.closest('[data-i],[data-c]');if(!t)return;stop();
+    if(t.dataset.i!==undefined)step=+t.dataset.i;else step=D.progs[progIdx].cycles.findIndex(c=>c.c===+t.dataset.c);render()});
+  $('chart').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.target.click()}});
+  document.addEventListener('keydown',e=>{if(['INPUT','SELECT'].includes(document.activeElement.tagName))return;
+    if(e.key==='ArrowRight'){stop();go(1)}else if(e.key==='ArrowLeft'){stop();go(-1)}});
+  const svg=$('sch');
+  svg.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,vb:vb.slice()};svg.setPointerCapture(e.pointerId)});
+  svg.addEventListener('pointermove',e=>{if(!drag)return;const r=svg.getBoundingClientRect();const s=Math.max(drag.vb[2]/r.width,drag.vb[3]/r.height);
+    const nv=[drag.vb[0]-(e.clientX-drag.x)*s,drag.vb[1]-(e.clientY-drag.y)*s,drag.vb[2],drag.vb[3]];
+    if(Math.abs(e.clientX-drag.x)+Math.abs(e.clientY-drag.y)>4){follow=false;$('v-follow').setAttribute('aria-pressed','false')}setVB(nv)});
+  svg.addEventListener('pointerup',()=>drag=null);svg.addEventListener('pointercancel',()=>drag=null);
+}
+
+fetch('data.json').then(r=>r.json()).then(d=>{D=d;insIdx=Math.max(0,D.instr.findIndex(i=>i.op==='ADD'));buildPicker();buildProgTabs();wire();render(true)})
+  .catch(()=>{$('stagelist').innerHTML='<span class="none">The simulation data could not be loaded. Reload the page.</span>'});
+})();
+</script>
