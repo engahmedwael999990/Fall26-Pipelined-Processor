@@ -155,8 +155,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,.cell:focus-visibl
 </div>
 
 <div class="strip" id="strip"></div>
-<div class="plate" id="plate"><svg id="sch" viewBox="90 0 4210 1900" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Processor schematic with the wires used in this step highlighted">
-  <image href="schema.png" x="90" y="0" width="4210" height="1900"/>
+<div class="plate" id="plate"><svg id="sch" viewBox="90 0 4690 1900" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Processor schematic with the wires used in this step highlighted">
+  <image href="schema.png" x="90" y="0" width="4690" height="1900"/>
   <g id="blocks"></g><g id="halos"></g><g id="flows"></g>
 </svg></div>
 <p class="hint">Drag to move around the schematic, use the zoom buttons, or click a cell of the chart. Arrow keys step.</p>
@@ -185,17 +185,17 @@ button:focus-visible,input:focus-visible,select:focus-visible,.cell:focus-visibl
 <script>
 (function(){
 const ST=['F','D','E1','E2','M','W'], SN={F:'IF',D:'ID',E1:'EX1',E2:'EX2',M:'MEM',W:'WB'};
-const REG={F:[90,180,760,980],D:[740,60,1000,1020],E1:[1680,180,850,1260],E2:[2440,180,850,950],MW:[3200,380,1100,420],ctl:[90,1380,1880,520],all:[90,0,4210,1900]};
+const REG={F:[90,180,760,980],D:[740,60,1000,1020],E1:[1680,180,850,1260],E2:[2440,180,850,950],MW:[3200,380,1100,420],ctl:[90,1380,1880,520],all:[90,0,4690,1900]};
 const VIEWFOR={F:'F',D:'D',E1:'E1',E2:'E2',M:'MW',W:'MW'};
 const GROUPS=[['One operand',['NOP','HLT','SETC','NOT','INC','OUT','IN']],['Two operands',['MOV','SWAP','ADD','SUB','AND','IADD','CMP','SHR','SHL']],
   ['Memory',['PUSH','POP','LDM','LDD','STD']],['Control',['JZ','JN','JC','JMP','CALL','RET','INT','RTI']]];
 const $=id=>document.getElementById(id);
 const svgNS='http://www.w3.org/2000/svg';
-let D=null, mode='ins', insIdx=9, progIdx=0, step=0, timer=null, follow=true, view='all', vb=[90,0,4210,1900], drag=null;
+let D=null, mode='ins', insIdx=9, progIdx=0, step=0, timer=null, follow=true, view='all', vb=[90,0,4690,1900], drag=null;
 const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const col=i=>i===-1?css('--bad'):i===-2?css('--fwd'):css('--c'+i);
 
-function setVB(r){vb=r.slice();$('sch').setAttribute('viewBox',r.join(' '));$('plate').classList.toggle('zoom',r[2]<4000)}
+function setVB(r){vb=r.slice();$('sch').setAttribute('viewBox',r.join(' '));$('plate').classList.toggle('zoom',r[2]<4100)}
 function setView(v){view=v;document.querySelectorAll('.views [data-v]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===v)));setVB(REG[v])}
 
 function drawWires(list){

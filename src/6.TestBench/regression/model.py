@@ -89,8 +89,8 @@ class Model:
         elif op in (0x09, 0x0C):            # ADD / IADD (IADD imm sign-extended)
             b = sext16(imm) if op == 0x0C else r[B]
             s = r[A] + b; v = s & M32; r[D] = v; self.zn(v); self.c = s >> 32
-        elif op in (0x0A, 0x0D):            # SUB / CMP : carry = NOT borrow
-            s = r[A] + ((~r[B]) & M32) + 1; v = s & M32; self.zn(v); self.c = s >> 32
+        elif op in (0x0A, 0x0D):            # SUB / CMP : C = borrow (Rsrc1 < Rsrc2 unsigned)
+            v = (r[A] - r[B]) & M32; self.zn(v); self.c = 1 if r[A] < r[B] else 0
             if op == 0x0A:
                 r[D] = v
         elif op == 0x0B:                    # AND

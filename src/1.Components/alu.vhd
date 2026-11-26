@@ -1,7 +1,8 @@
 -- =============================================================================
 -- alu.vhd  --  one carry chain:  result = X + Y + cin
 --   X in {A, not A, A and B, B}     Y in {0, B, not B}
---   ADD  : A + B          SUB/CMP : A + not B + 1 (C = not borrow)
+--   ADD  : A + B          SUB/CMP : A + not B + 1 (C = borrow = not carry-out,
+--                                   i.e. C = 1 when A < B unsigned; Q&A #14)
 --   INC  : A + 0 + 1      IADD    : A + imm
 --   NOT  : not A + 0      AND     : (A and B) + 0
 --   MOV / IN / LDM : B + 0           PASS (OUT, PUSH, LDD/STD base): A + 0
@@ -31,5 +32,6 @@ begin
   cin_u(0) <= cin;
   sum    <= ('0' & unsigned(x)) + ('0' & unsigned(y)) + cin_u;
   result <= std_logic_vector(sum(31 downto 0));
-  cout   <= sum(32);
+  -- ys = YS_NOTB ("10") only for SUB/CMP: invert carry-out to give borrow
+  cout   <= sum(32) xor ys(1);
 end architecture;

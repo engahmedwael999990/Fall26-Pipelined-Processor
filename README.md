@@ -30,7 +30,7 @@ F26/
 
 - IADD immediate and LDD/STD offsets are **sign-extended**. LDM is **zero-extended**: the Fall26
   test1 expects `LDM R0, FFFF` → `0000FFFF`.
-- SUB/CMP carry = NOT borrow (C = 1 when Rsrc1 ≥ Rsrc2 unsigned).
+- SUB/CMP carry = borrow (C = 1 when Rsrc1 < Rsrc2 unsigned), per instructor Q&A #14/#17. ADD/IADD/INC: C = carry-out.
 - SHL/SHR are logical; SHR fills with zeros; carry = last bit shifted out. Count 0 keeps C.
   Count 32 gives 0 with C = bit0 (SHL) or bit31 (SHR). Count > 32 gives 0 with C = 0.
 - A taken JZ/JN/JC clears the tested flag. CCR bit 3 = 0.
